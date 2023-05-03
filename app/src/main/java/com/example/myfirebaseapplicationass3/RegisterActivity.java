@@ -4,8 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -19,6 +21,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -29,6 +33,7 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private RadioGroup radioGroupRegisterGender;
     private RadioButton radioButtonRegisterGenderSelected;
+    private static final String TAG = "RegisterActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,18 +141,24 @@ public class RegisterActivity extends AppCompatActivity {
                                     | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity (intent);
                             finish(); //to close Register Activity */
+                        } else {
+                            try {
+                                throw task.getException();
+                            } catch (FirebaseAuthWeakPasswordException e) {
+                                editTextRegisterPwd.setError("Your password is too weak. Kindly use a mix of alphabets");
+                                editTextRegisterPwd.requestFocus();
+                            } catch (FirebaseAuthInvalidCredentialsException e) {
+                                editTextRegisterPwd.setError("Your Email is invaled or in uesd ");
+                                editTextRegisterPwd.requestFocus();
+                            } catch (FirebaseAuthUserCollisionException e) {
+                                editTextRegisterPwd.setError("Your Email is already registerd with this  email, ues another email");
+                                editTextRegisterPwd.requestFocus();
+                            } catch (Exception e){
+                                Log.e(TAG,e.getMessage());
+                                Toast.makeText(RegisterActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
+                                progressBar.setVisibility(View.GONE);
+                            }
                         }
-//                        else {
-//                            try {
-//                                throw task.getException();
-//                            } catch (FirebaseAuthWeakPasswordException e) {
-//                                editTextRegisterPwd.setError("Your password is too weak. Kindly use a mix of alphabets, numbers");
-//                            }
-//                        }
-
-
-
-
 
 
 
