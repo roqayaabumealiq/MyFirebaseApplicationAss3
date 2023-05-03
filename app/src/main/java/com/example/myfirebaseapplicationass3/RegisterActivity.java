@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,6 +24,12 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -53,6 +58,10 @@ public class RegisterActivity extends AppCompatActivity {
         //RadioButton for Gender
         radioGroupRegisterGender = findViewById(R.id.radio_group_register_gender);
         radioGroupRegisterGender.clearCheck();
+
+
+
+
         Button buttonRegister = findViewById(R.id.button_register);
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,6 +77,13 @@ public class RegisterActivity extends AppCompatActivity {
                 String textMobile = editTextRegisterMobile.getText().toString();
                 String textPwd = editTextRegisterPwd.getText().toString();
                 String textGender; //Can't obtain the value before verifying if any button was selected or not
+
+                String mobileRegex = "[6-9][0-9]{0}";
+                Matcher mobilematcher;
+                Pattern mobilepatterns  = Pattern.compile(mobileRegex);
+                mobilematcher = mobilepatterns.matcher(textMobile);
+
+
 
 
                 if (TextUtils.isEmpty(textFullName)) {
@@ -97,6 +113,10 @@ public class RegisterActivity extends AppCompatActivity {
                 } else if (textMobile.length() != 10) {
                     Toast.makeText( RegisterActivity.this, "Please re-enter your mobile no.", Toast.LENGTH_LONG).show();
                     editTextRegisterMobile.setError("Mobile No. should be 10 digits");
+                    editTextRegisterMobile.requestFocus();
+                }else if (!mobilematcher.find()){
+                    Toast.makeText( RegisterActivity.this, "Please re-enter your mobile no.", Toast.LENGTH_LONG).show();
+                    editTextRegisterMobile.setError("Mobile No. is not valid");
                     editTextRegisterMobile.requestFocus();
                 } else if (TextUtils.isEmpty (textPwd)) {
                     Toast.makeText(  RegisterActivity. this,  "Please enter your password", Toast.LENGTH_LONG).show();
@@ -129,18 +149,39 @@ public class RegisterActivity extends AppCompatActivity {
 
 
                         if (task.isSuccessful()) {
-                            Toast.makeText(  RegisterActivity.this,  "User registered successfully", Toast.LENGTH_LONG).show();
                             FirebaseUser firebaseUser = auth.getCurrentUser();
 
-                                //Send Verification Email
-                          /*  firebaseUser.sendEmailVerification();
-                               //Open User Profile after successful registration
-                            Intent intent = new Intent ( RegisterActivity. this, UserProfileActivity.class);
-                              //To Prevent User from returning back to Register Activity on pressing back button after registration
-                            intent. setFlags (Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                    | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity (intent);
-                            finish(); //to close Register Activity */
+                            UserProfileChangeRequest profileChangeRequest = new  UserProfileChangeRequest.Builder().setDisplayName(textFullName).build();
+                            firebaseUser.updateProfile(profileChangeRequest);
+
+                            ReadwriteUserDetails writeUserDetails = new ReadwriteUserDetails(textDoB,textGender,textMobile);
+
+                            DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Register Users");
+
+                            referenceProfile.child(firebaseUser.getUid()).setValue(writeUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+
+                                    if (task.isSuccessful()){
+                                        //Send Verification Email
+                                        firebaseUser.sendEmailVerification();
+                                        Toast.makeText(  RegisterActivity.this,  "User registered successfully,Please verify your email", Toast.LENGTH_LONG).show();
+
+                                        //Open User Profile after successful registration
+                                        Intent intent = new Intent ( RegisterActivity. this, UserProfileActivity.class);
+                                        //To Prevent User from returning back to Register Activity on pressing back button after registration
+                                        intent. setFlags (Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                                | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        startActivity (intent);
+                                        finish(); //to close Register Activity
+                                    }else {
+                                        Toast.makeText(  RegisterActivity.this,  "User registered Failed,Please try again", Toast.LENGTH_LONG).show();
+                                    }
+                                    progressBar.setVisibility(View.GONE);
+                                }
+                            });
+
+
                         } else {
                             try {
                                 throw task.getException();
@@ -156,8 +197,8 @@ public class RegisterActivity extends AppCompatActivity {
                             } catch (Exception e){
                                 Log.e(TAG,e.getMessage());
                                 Toast.makeText(RegisterActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
-                                progressBar.setVisibility(View.GONE);
                             }
+                            progressBar.setVisibility(View.GONE);
                         }
 
 
