@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">MyFirebaseApplicationAss3</string>
+    <string name="loading" />
+    <string name="registered_user_since" />
+    <string name="mobile" />
+    <string name="gender" />
+    <string name="dob" />
+    <string name="email" />
+    <string name="name" />
+    <string name="user_display_picture" />
 </resources>
