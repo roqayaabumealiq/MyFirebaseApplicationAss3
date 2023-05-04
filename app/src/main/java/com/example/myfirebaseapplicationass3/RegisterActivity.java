@@ -176,7 +176,7 @@ public class RegisterActivity extends AppCompatActivity {
                             UserProfileChangeRequest profileChangeRequest = new  UserProfileChangeRequest.Builder().setDisplayName(textFullName).build();
                             firebaseUser.updateProfile(profileChangeRequest);
 
-                            ReadwriteUserDetails writeUserDetails = new ReadwriteUserDetails(textDoB,textGender,textMobile);
+                            ReadWriteUserDetails writeUserDetails = new ReadWriteUserDetails(textDoB,textGender,textMobile);
 
                             DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Register Users");
 

@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -75,11 +76,12 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onComplete (@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
+                    FirebaseUser firebaseUser =authProfile.getCurrentUser();
 
+                    Toast.makeText( LoginActivity. this,  "You are logged in now", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(LoginActivity.this,UserProfileActivity.class));
                     finish();
 
-                    Toast.makeText( LoginActivity. this,  "You are logged in now", Toast.LENGTH_SHORT).show();
                 } else {
                     try {
                         throw task.getException();
@@ -112,4 +114,5 @@ public class LoginActivity extends AppCompatActivity {
 //            Toast.makeText(LoginActivity. this,  "You Can Login Now!", Toast.LENGTH_SHORT).show();
 //        }
 //    }
+
 }
